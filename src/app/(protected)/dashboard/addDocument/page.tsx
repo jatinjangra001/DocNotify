@@ -1,6 +1,6 @@
 "use client";
 import { useUser } from '@clerk/nextjs';
-import { doc, collection, addDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, addDoc, setDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from 'next/navigation';
@@ -11,12 +11,13 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Input } from '@/components/ui/input';
 import { DatePickerDemo } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
+import { ToastAction } from '@radix-ui/react-toast';
 
 interface Document {
     title: string;
     description: string;
     expiryDate: string;
-    createdAt: any;
+    createdAt: FieldValue;
     currentDate: string;
     reminders: boolean;
     fileUrls?: string[];
@@ -41,7 +42,8 @@ const AddDocument = () => {
             toast({
                 title: "Loading",
                 description: "Please wait while we load your information.",
-                variant: "default"
+                variant: "default",
+                action: <ToastAction altText='DISMISS_TOAST'>Dismiss</ToastAction>
             });
             return;
         }

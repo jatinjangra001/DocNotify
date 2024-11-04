@@ -1,12 +1,6 @@
 // lib/notifications.ts
 import { firestore } from "@/app/firebase/firebaseConfig";
-import {
-  collection,
-  getDocs,
-  collectionGroup,
-  getDoc,
-  doc,
-} from "firebase/firestore";
+import { getDoc, doc } from "firebase/firestore";
 
 interface Document {
   id: string;
@@ -99,12 +93,22 @@ export const checkDocumentExpiry = async (document: Document) => {
       status: "checked",
       daysUntilExpiry,
     };
-  } catch (error: any) {
-    console.error(`Error processing document ${document.id}:`, error);
-    return {
-      documentId: document.id,
-      status: "error",
-      error: error.message,
-    };
+  } catch (error: unknown) {
+    // Change 'any' to 'unknown'
+    if (error instanceof Error) {
+      console.error(`Error processing document ${document.id}:`, error.message);
+      return {
+        documentId: document.id,
+        status: "error",
+        error: error.message,
+      };
+    } else {
+      console.error(`Error processing document ${document.id}:`, error);
+      return {
+        documentId: document.id,
+        status: "error",
+        error: "An unknown error occurred.",
+      };
+    }
   }
 };

@@ -3,6 +3,11 @@ import { checkDocumentExpiry } from "@/lib/notifications";
 import { firestore } from "@/app/firebase/firebaseConfig";
 import { collectionGroup, getDocs } from "firebase/firestore";
 
+// Define a custom error type to include a 'code' property
+interface FirestoreError extends Error {
+  code?: string; // The code property is optional
+}
+
 export async function GET(request: Request) {
   // Verify cron secret in production
   const authHeader = request.headers.get("authorization");
@@ -49,19 +54,34 @@ export async function GET(request: Request) {
       notificationsSent,
       results: validResults,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Change 'any' to 'unknown'
     console.error("Cron job error:", error);
+
+    // Type narrowing to access properties safely
+    if (error instanceof Error) {
+      const firestoreError = error as FirestoreError; // Type assertion
+
+      return NextResponse.json(
+        {
+          error: firestoreError.message,
+          errorDetails:
+            process.env.NODE_ENV === "development"
+              ? {
+                  name: firestoreError.name,
+                  code: firestoreError.code, // Now this is safe to access
+                  stack: firestoreError.stack,
+                }
+              : undefined,
+        },
+        { status: 500 }
+      );
+    }
+
+    // Fallback for unexpected error types
     return NextResponse.json(
       {
-        error: error.message,
-        errorDetails:
-          process.env.NODE_ENV === "development"
-            ? {
-                name: error.name,
-                code: error.code,
-                stack: error.stack,
-              }
-            : undefined,
+        error: "An unknown error occurred",
       },
       { status: 500 }
     );

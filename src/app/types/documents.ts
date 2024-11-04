@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 // types/document.ts
 export interface Document {
   id: string;
@@ -6,6 +8,6 @@ export interface Document {
   expiryDate: string;
   reminders: boolean;
   fileUrls?: string[];
-  createdAt: any;
+  createdAt: Timestamp;
   currentDate: string;
 }

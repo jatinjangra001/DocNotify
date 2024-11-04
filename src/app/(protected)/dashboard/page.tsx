@@ -2,16 +2,16 @@
 import React from "react";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { doc, getDoc, collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, query, orderBy, limit, getDocs, Timestamp } from "firebase/firestore";
 import { firestore } from "@/app/firebase/firebaseConfig";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { UserProfile } from "@/lib/firebase/user";
-import { CalendarRange, FileText, Bell, Clock, AlertTriangle } from "lucide-react";
+import { FileText, Bell, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { format } from "date-fns";
+import { format } from "date-fns"; // Ensure this import is correct
 import { LucideIcon } from 'lucide-react'
 
 // Types
@@ -19,7 +19,7 @@ interface Document {
     id: string;
     title: string;
     expiryDate: string;
-    createdAt: any;
+    createdAt: Timestamp;
     reminders: boolean;
 }
 
@@ -114,7 +114,7 @@ const RecentDocumentsList: React.FC<RecentDocumentsListProps> = ({ documents }) 
 export default function DashboardPage() {
     const { user, isLoaded: isUserLoaded } = useUser();
 
-    const { data: userData, isLoading: isUserLoading } = useQuery({
+    const { isLoading: isUserLoading } = useQuery({
         queryKey: ["userProfile", user?.id],
         queryFn: () => fetchUserProfile(user?.id || ""),
         enabled: !!user?.id,
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                         Welcome back, {user?.firstName}
                     </h1>
                     <p className="text-muted-foreground">
-                        Here's an overview of your documents and upcoming expirations.
+                        Here is an overview of your documents and upcoming expirations.
                     </p>
                 </div>
                 <Link href="/dashboard/addDocument">
@@ -225,14 +225,10 @@ export default function DashboardPage() {
                         <RecentDocumentsList documents={recentDocs} />
                     ) : (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
-                            <FileText className="h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-semibold">No documents yet</h3>
-                            <p className="text-sm text-gray-500">
-                                Add your first document to get started
+                            <FileText className="h-8 w-8 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">
+                                You have no documents yet. Start adding some!
                             </p>
-                            <Link href="/dashboard/addDocument" className="mt-4">
-                                <Button>Add Document</Button>
-                            </Link>
                         </div>
                     )}
                 </CardContent>

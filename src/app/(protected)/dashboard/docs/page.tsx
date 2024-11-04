@@ -1,7 +1,7 @@
 "use client";
 import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, orderBy, where } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 import { firestore } from '@/app/firebase/firebaseConfig';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,7 @@ interface Document {
     title: string;
     description: string;
     expiryDate: string;
-    createdAt: any;
+    createdAt: Timestamp;
     reminders: boolean;
     fileUrls?: string[];
 }
@@ -59,7 +59,7 @@ export default function DocumentsPage() {
         };
 
         fetchDocuments();
-    }, [user?.id, isLoaded]);
+    }, [user?.id, isLoaded, toast]);
 
     const filteredAndSortedDocs = documents
         .filter(doc => {

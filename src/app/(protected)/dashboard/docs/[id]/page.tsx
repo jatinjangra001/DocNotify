@@ -44,11 +44,17 @@ export default function DocumentDetail() {
     // Fetch document data
     const { data: document, isLoading } = useQuery({
         queryKey: ['document', user?.id, params.id],
-        queryFn: () => fetchDocument(user?.id!, params.id as string),
+        queryFn: () => {
+            if (user?.id && params.id) {
+                return fetchDocument(user.id, params.id as string);
+            }
+            return null; // Or throw an error if you prefer
+        },
         enabled: !!user?.id && !!params.id && isLoaded,
         retry: 1,
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
+
 
     // Update document mutation
     const updateMutation = useMutation({
@@ -165,7 +171,7 @@ export default function DocumentDetail() {
     const getImageUrl = (url: string) => {
         try {
             // Create a URL object to handle the Firebase Storage URL
-            const firebaseUrl = new URL(url);
+            // const firebaseUrl = new URL(url);
             // Return the full URL as is - Firebase Storage URLs are already properly formatted
             return url;
         } catch (e) {
