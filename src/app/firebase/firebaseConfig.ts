@@ -1,4 +1,4 @@
-// firebaseConfig.ts
+//src/app/firebase/firebaseConfig.ts
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";

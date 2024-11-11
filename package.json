@@ -26,29 +26,32 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "dayjs": "^1.11.13",
     "firebase": "^11.0.1",
-    "firebase-admin": "^12.7.0",
     "firebase-functions": "^6.1.0",
     "framer-motion": "^11.11.11",
     "lucide-react": "^0.454.0",
     "next": "15.0.1",
+    "nodemailer": "^6.9.16",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.2",
     "react-email": "^3.0.2",
-    "resend": "^4.0.1-alpha.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.16",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "15.0.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  }
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "type": "module"
 }

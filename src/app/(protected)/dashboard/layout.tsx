@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserButton } from "@clerk/nextjs";
+// import EmailTestButton from "@/components/email/EmailTestButton";
+
 
 interface DashboardLayoutProps {
     children?: React.ReactNode;
@@ -67,6 +69,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 <FileStack className="h-4 w-4" />
                                 Docs
                             </Link>
+                            {/* to test the email service is working or not natively  */}
+                            {/* <EmailTestButton /> */}
                         </nav>
                     </div>
                 </div>
@@ -103,12 +107,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="w-full flex-1">
                         <form>
                             <div className="relative">
-                                {/* <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="search"
-                                    placeholder="Search docs..."
-                                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                                /> */}
                             </div>
                         </form>
                     </div>
