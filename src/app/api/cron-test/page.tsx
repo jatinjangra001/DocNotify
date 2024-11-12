@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function TestCronPage() {
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
