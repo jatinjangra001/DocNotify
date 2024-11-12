@@ -505,6 +505,7 @@
 //   }
 // }
 
+// src/lib/emailService.ts
 import nodemailer from "nodemailer";
 import { firestore } from "@/app/firebase/firebaseConfig";
 import {
