@@ -1,11 +1,21 @@
+// src/app/api/test-cron/route.ts
 import { NextResponse } from "next/server";
 import { checkUpcomingExpirations } from "@/lib/emailService";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
+  console.log("Test cron endpoint called");
 
-  // Use the same CRON_SECRET_KEY for testing
+  const authHeader = request.headers.get("authorization");
+  if (!process.env.CRON_SECRET_KEY) {
+    console.error("CRON_SECRET_KEY not configured");
+    return NextResponse.json(
+      { error: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+
   if (authHeader !== `Bearer ${process.env.CRON_SECRET_KEY}`) {
+    console.log("Unauthorized access attempt");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -16,6 +26,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: result.success,
+      message: result.message,
       details: {
         emailsSent: result.emailsSent,
         processedUsers: result.processedUsers,
