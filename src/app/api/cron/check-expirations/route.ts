@@ -42,21 +42,21 @@ export async function GET(request: Request) {
   console.log("Automated cron job triggered");
 
   try {
-    // Check for Vercel Cron specific headers
     const authHeader = request.headers.get("authorization");
+    console.log("Authorization header:", authHeader); // Log the Authorization header
+
     const isVercelCron = request.headers
       .get("user-agent")
       ?.includes("vercel-cron");
 
-    // Validation logic
+    // Check for correct authorization
     if (isVercelCron) {
-      // For Vercel automated cron
       if (!VERCEL_CRON_TOKEN || authHeader !== `Bearer ${VERCEL_CRON_TOKEN}`) {
         console.error("Unauthorized Vercel cron attempt");
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     } else {
-      // For manual API calls
+      // Handle manual API calls if any
       if (
         !process.env.CRON_SECRET_KEY ||
         authHeader !== `Bearer ${process.env.CRON_SECRET_KEY}`
@@ -66,8 +66,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // Execute the cron job
-    console.log("Starting expiration check...");
+    // Proceed with cron logic
     const result = await checkUpcomingExpirations();
     console.log("Expiration check completed:", result);
 
@@ -75,32 +74,18 @@ export async function GET(request: Request) {
       return NextResponse.json({
         success: true,
         message: "Expiration check completed successfully",
-        details: {
-          emailsSent: result.emailsSent,
-          processedUsers: result.processedUsers,
-          errorCount: result.errorCount,
-          errors: result.errors,
-        },
+        details: result,
       });
     } else {
-      console.error("Expiration check failed:", result);
       return NextResponse.json(
-        {
-          success: false,
-          error: "Failed to check expirations",
-          details: result,
-        },
+        { success: false, error: "Failed to check expirations" },
         { status: 500 }
       );
     }
   } catch (error) {
     console.error("Error in cron job:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
