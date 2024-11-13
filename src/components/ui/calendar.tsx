@@ -6,6 +6,7 @@ import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { before } from "node:test"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -15,6 +16,7 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const today = new Date();
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -58,6 +60,7 @@ function Calendar({
         IconRight: ({ }) => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}
+      disabled={{ before: today }}
     />
   )
 }
