@@ -35,7 +35,7 @@
 import { NextResponse } from "next/server";
 import { checkUpcomingExpirations } from "@/lib/emailService";
 
-export const maxDuration = 300; // 5 minutes max duration for long-running cron
+export const maxDuration = 60; // 5 minutes max duration for long-running cron
 const VERCEL_CRON_TOKEN = process.env.VERCEL_CRON_TOKEN; // Set this in Vercel environment variables
 
 export async function GET(request: Request) {

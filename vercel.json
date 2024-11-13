@@ -2,7 +2,10 @@
   "crons": [
     {
       "path": "/api/cron/check-expirations",
-      "schedule": "0 0 * * *"
+      "schedule": "0 0 * * *",
+      "headers": {
+        "Authorization": "Bearer @VERCEL_CRON_TOKEN"
+      }
     }
   ]
 }
