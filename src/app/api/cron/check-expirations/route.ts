@@ -42,31 +42,24 @@ export async function GET(request: Request) {
   console.log("Automated cron job triggered");
 
   try {
-    const authHeader = request.headers.get("authorization");
-    console.log("Authorization header:", authHeader); // Log the Authorization header
+    const userAgent = request.headers.get("user-agent") ?? "";
+    console.log("User-Agent:", userAgent);
 
-    const isVercelCron = request.headers
-      .get("user-agent")
-      ?.includes("vercel-cron");
+    // Only check the authorization token if it's not a cron job request
+    const isVercelCron = userAgent.includes("vercel-cron");
 
-    // Check for correct authorization
-    if (isVercelCron) {
-      if (!VERCEL_CRON_TOKEN || authHeader !== `Bearer ${VERCEL_CRON_TOKEN}`) {
+    if (!isVercelCron) {
+      const authHeader = request.headers.get("authorization");
+      console.log("Authorization header:", authHeader); // Log the Authorization header
+
+      // Check if the authorization token matches your VERCEL_CRON_TOKEN
+      if (authHeader !== `Bearer ${VERCEL_CRON_TOKEN}`) {
         console.error("Unauthorized Vercel cron attempt");
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else {
-      // Handle manual API calls if any
-      if (
-        !process.env.CRON_SECRET_KEY ||
-        authHeader !== `Bearer ${process.env.CRON_SECRET_KEY}`
-      ) {
-        console.error("Unauthorized manual API call");
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     }
 
-    // Proceed with cron logic
+    // Proceed with cron job logic
     const result = await checkUpcomingExpirations();
     console.log("Expiration check completed:", result);
 
