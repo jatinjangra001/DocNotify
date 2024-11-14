@@ -5,6 +5,7 @@ This is a [Next.js](https://nextjs.org) project created with [`create-next-app`]
 - **LinkedIn**: [![LinkedIn](https://img.shields.io/badge/-LinkedIn-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jangrajatin/)
   https://www.linkedin.com/in/jangrajatin/
 
+[![Next.js](https://img.shields.io/badge/-Next.js-000?logo=nextdotjs)](https://nextjs.org/) [![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black)](https://reactjs.org/) [![Tailwind CSS](https://img.shields.io/badge/-TailwindCSS-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/) [![Clerk](https://img.shields.io/badge/-Clerk-00BBFF?logo=clerk&logoColor=white)](https://clerk.dev/) [![TanStack React Query](https://img.shields.io/badge/-TanStack%20React%20Query-FF4154?logo=react&logoColor=white)](https://tanstack.com/query) [![TanStack React Query](https://img.shields.io/badge/-TanStack%20React%20Query-FF4154?logo=react&logoColor=white)](https://tanstack.com/query)
 # [DocNotify](https://docnotify.vercel.app/) - Live Now 🚀
 
 DocNotify is a web application designed to help users manage their important documents and receive timely reminders about their expiration. Built using **Next.js** and deployed on **Vercel**, the project utilizes cron jobs for automated notifications and features secure authentication with **Clerk**.
