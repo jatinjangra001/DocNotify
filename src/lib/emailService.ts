@@ -155,6 +155,8 @@ async function sendConsolidatedEmail(
     documents.length > 1 ? "s" : ""
   }`;
 
+  const dashboardUrl = "https://docnotify.vercel.app/";
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #333;">Document Expiration Notice</h1>
@@ -193,7 +195,26 @@ async function sendConsolidatedEmail(
         </tbody>
       </table>
       
-      <p style="margin-top: 20px;">Please visit your dashboard to manage these documents.</p>
+      <div style="margin-top: 30px; text-align: center;">
+        <a href="${dashboardUrl}" 
+           style="background-color: #0070f3; 
+                  color: white; 
+                  padding: 12px 24px; 
+                  text-decoration: none; 
+                  border-radius: 5px; 
+                  display: inline-block;
+                  font-weight: 600;">
+          Access Your Dashboard
+        </a>
+      </div>
+
+      <p style="margin-top: 20px; color: #666; font-size: 14px;">
+        Click the button above or visit <a href="${dashboardUrl}" style="color: #0070f3;">${dashboardUrl}</a> to manage your documents.
+      </p>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
+        <p>This is an automated notification from DocNotify. If you believe you received this email in error, please ignore it or contact support.</p>
+      </div>
     </div>
   `;
 
@@ -204,7 +225,7 @@ async function sendConsolidatedEmail(
           doc.isExpired ? "EXPIRED" : `Expires in ${doc.daysUntilExpiry} days`
         } (${doc.expiryDate.toLocaleDateString()})`
     )
-    .join("\n")}`;
+    .join("\n")}\n\nAccess your dashboard at: ${dashboardUrl}`;
 
   try {
     const info = await transporter.sendMail({
