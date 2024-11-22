@@ -7,6 +7,7 @@ import {
     Bell,
     FilePlus2,
     FileStack,
+    Headset,
     Home,
     Menu,
     Package2,
@@ -15,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserButton } from "@clerk/nextjs";
 // import EmailTestButton from "@/components/email/EmailTestButton";
+
 
 
 interface DashboardLayoutProps {
@@ -26,15 +28,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [activeLink, setActiveLink] = useState("");
 
     useEffect(() => {
-        // Determine active link based on the current pathname
         if (pathname.startsWith("/dashboard/docs")) {
             setActiveLink("docs");
         } else if (pathname.startsWith("/dashboard/profile")) {
             setActiveLink("profile");
+        } else if (pathname.startsWith("/dashboard/contact-us")) {
+            setActiveLink("contact-us");
         } else if (pathname === "/dashboard") {
             setActiveLink("dashboard");
         }
     }, [pathname]);
+
 
     const handleLinkClick = (link: string) => {
         setActiveLink(link);
@@ -69,6 +73,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 <FileStack className="h-4 w-4" />
                                 Docs
                             </Link>
+                            <Link href={"/dashboard/contact-us"} onClick={() => handleLinkClick("contact-us")} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${activeLink === "contact-us" ? "bg-muted text-primary" : "text-muted-foreground"}`}>
+                                <Headset className="h-4 w-4" />
+                                Contact Us
+                            </Link>
+
                             {/* to test the email service is working or not natively  */}
                             {/* <EmailTestButton /> */}
                         </nav>
@@ -100,6 +109,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 <Link href={"/dashboard/docs"} onClick={() => handleLinkClick("docs")} className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-foreground ${activeLink === "docs" ? "bg-muted text-foreground" : "text-muted-foreground"}`}>
                                     <FileStack className="h-5 w-5" />
                                     Docs
+                                </Link>
+                                <Link href={"/dashboard/contact-us"} onClick={() => handleLinkClick("contact-us")} className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-foreground ${activeLink === "contact-us" ? "bg-muted text-foreground" : "text-muted-foreground"}`}>
+                                    <Headset className="h-5 w-5" />
+                                    Contact Us
                                 </Link>
                             </nav>
                         </SheetContent>
