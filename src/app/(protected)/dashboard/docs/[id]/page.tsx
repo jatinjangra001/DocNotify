@@ -311,24 +311,26 @@ export default function DocumentDetail() {
                 </p>
 
                 <div className="flex space-x-4 mb-4">
-                    <Button
-                        onClick={handleToggleReminders}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                        disabled={updateMutation.isPending}
-                    >
-                        {document.reminders ? (
-                            <>
-                                <BellRing className="h-4 w-4" />
-                                <span>Reminders are ON</span>
-                            </>
-                        ) : (
-                            <>
-                                <BellOff className="h-4 w-4" />
-                                <span>Reminders are OFF</span>
-                            </>
-                        )}
-                    </Button>
+                    {document.expiryDate && (
+                        <Button
+                            onClick={handleToggleReminders}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                            disabled={updateMutation.isPending}
+                        >
+                            {document.reminders ? (
+                                <>
+                                    <BellRing className="h-4 w-4" />
+                                    <span>Reminders are ON</span>
+                                </>
+                            ) : (
+                                <>
+                                    <BellOff className="h-4 w-4" />
+                                    <span>Reminders are OFF</span>
+                                </>
+                            )}
+                        </Button>
+                    )}
 
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
