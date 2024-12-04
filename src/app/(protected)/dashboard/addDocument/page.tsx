@@ -1,7 +1,6 @@
-//dashboard/addDocument/page.tsx
 "use client";
 import { useUser } from '@clerk/nextjs';
-import { doc, collection, addDoc, setDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
+import { doc, collection, addDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from 'next/navigation';
@@ -13,12 +12,13 @@ import { Input } from '@/components/ui/input';
 import { DatePickerDemo } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { ToastAction } from '@radix-ui/react-toast';
+import { Timestamp } from 'firebase/firestore';
 
 interface Document {
     title: string;
     description: string;
-    expiryDate: string;
-    createdAt: FieldValue;
+    expiryDate?: string;
+    createdAt: Timestamp;
     currentDate: string;
     reminders: boolean;
     fileUrls?: string[];
@@ -33,6 +33,7 @@ const AddDocument = () => {
     const [expiryDate, setExpiryDate] = useState<Date | undefined>();
     const [files, setFiles] = useState<File[]>([]);
     const [loading, setLoading] = useState(false);
+    const [hasExpiry, setHasExpiry] = useState(false);
     const [reminders, setReminders] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +50,7 @@ const AddDocument = () => {
             return;
         }
 
-        if (!user?.id || !title || !description || !expiryDate || files.length === 0) {
+        if (!user?.id || !title || !description || files.length === 0) {
             toast({
                 title: "Missing Information",
                 description: "Please fill all required fields and upload at least one file.",
@@ -59,15 +60,26 @@ const AddDocument = () => {
             return;
         }
 
+        // Validate expiry date if it's set
+        if (hasExpiry && !expiryDate) {
+            toast({
+                title: "Invalid Expiry Date",
+                description: "Please select an expiry date or uncheck the expiry option.",
+                variant: "destructive"
+            });
+            setLoading(false);
+            return;
+        }
+
         try {
             // Create document reference
-            const docData: Omit<Document, 'fileUrls'> = {
+            const docData: Document = {
                 title,
                 description,
-                expiryDate: expiryDate.toISOString(),
-                createdAt: serverTimestamp(),
+                ...(hasExpiry && expiryDate && { expiryDate: expiryDate.toISOString() }),
+                createdAt: serverTimestamp() as Timestamp,
                 currentDate: new Date().toISOString(),
-                reminders,
+                reminders: hasExpiry && reminders
             };
 
             const docRef = await addDoc(collection(firestore, 'users', user.id, 'documents'), docData);
@@ -127,22 +139,46 @@ const AddDocument = () => {
                 required
             />
             <div className='space-y-4'>
-                <DatePickerDemo
-                    selected={expiryDate}
-                    onSelect={setExpiryDate}
-                />
                 <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                        <label className="text-base">Get Reminders?</label>
+                        <label className="text-base">Document has Expiry?</label>
                         <p className="text-sm text-gray-600">
-                            Receive reminders for this document expirations
+                            Toggle if this document has an expiration date
                         </p>
                     </div>
                     <Switch
-                        checked={reminders}
-                        onCheckedChange={setReminders}
+                        checked={hasExpiry}
+                        onCheckedChange={(checked) => {
+                            setHasExpiry(checked);
+                            // Reset related states when unchecked
+                            if (!checked) {
+                                setExpiryDate(undefined);
+                                setReminders(false);
+                            }
+                        }}
                     />
                 </div>
+
+                {hasExpiry && (
+                    <>
+                        <DatePickerDemo
+                            selected={expiryDate}
+                            onSelect={setExpiryDate}
+                        />
+                        <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <label className="text-base">Get Reminders?</label>
+                                <p className="text-sm text-gray-600">
+                                    Receive reminders for this document expiration
+                                </p>
+                            </div>
+                            <Switch
+                                checked={reminders}
+                                onCheckedChange={setReminders}
+                            />
+                        </div>
+                    </>
+                )}
             </div>
             <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed primary2 rounded-lg">
                 <FileUpload

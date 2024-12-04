@@ -96,7 +96,7 @@ const RecentDocumentsList: React.FC<RecentDocumentsListProps> = ({ documents }) 
                             <div>
                                 <h3 className="font-medium">{doc.title}</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Expires: {format(new Date(doc.expiryDate), "PP")}
+                                    Expires: {doc.expiryDate ? format(new Date(doc.expiryDate), 'PPP') : 'No Expiry Date'}
                                 </p>
                             </div>
                         </div>

@@ -189,7 +189,7 @@ export default function DocumentsPage() {
                                         </div>
                                     </CardContent>
                                     <CardFooter className="text-sm text-muted-foreground">
-                                        Expires: {format(new Date(doc.expiryDate), 'PPP')}
+                                        Expires:  {doc.expiryDate ? format(new Date(doc.expiryDate), 'PPP') : 'No Expiry Date'}
                                     </CardFooter>
                                 </Card>
                             </Link>
