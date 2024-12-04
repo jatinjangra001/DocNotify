@@ -1,3 +1,4 @@
+//dashboard/addDocument/page.tsx
 "use client";
 import { useUser } from '@clerk/nextjs';
 import { doc, collection, addDoc, setDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
@@ -75,7 +76,7 @@ const AddDocument = () => {
             const fileUrls = await Promise.all(
                 files.map(async (file) => {
                     const fileRef = ref(storage, `users/${user.id}/documents/${docRef.id}/${file.name}`);
-                    await uploadBytes(fileRef, file);
+                    await uploadBytes(fileRef, file, { contentType: file.type });
                     return getDownloadURL(fileRef);
                 })
             );

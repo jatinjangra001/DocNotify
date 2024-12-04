@@ -1,17 +1,18 @@
 'use client';
-
 import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { firestore, storage } from '@/app/firebase/firebaseConfig';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
+import { ref, deleteObject, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { BellOff, BellRing } from 'lucide-react';
+import { BellOff, BellRing, Download } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PDFViewer } from '@/components/ui/PDFViewer';
+import { FC } from 'react';
 
 interface Document {
     id: string;
@@ -23,6 +24,13 @@ interface Document {
     docIds?: string[];
 }
 
+interface FileItemProps {
+    url: string;
+    index: number;
+    onDelete: () => void;
+    isDeleting: boolean;
+}
+
 const fetchDocument = async (userId: string, docId: string): Promise<Document | null> => {
     if (!userId || !docId) return null;
     const docRef = doc(firestore, 'users', userId, 'documents', docId);
@@ -32,6 +40,109 @@ const fetchDocument = async (userId: string, docId: string): Promise<Document | 
         return { id: docSnap.id, ...docSnap.data() } as Document;
     }
     return null;
+};
+
+const FileItem: FC<FileItemProps> = ({ url, index, onDelete, isDeleting }) => {
+    const isImage = (urlToCheck: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(urlToCheck.split('?')[0].toLowerCase());
+    const isPDF = (urlToCheck: string) => /\.(pdf)$/i.test(urlToCheck.split('?')[0].toLowerCase());
+
+    const handleDownload = async () => {
+        try {
+            const downloadUrl = await getDownloadURL(ref(storage, url));
+
+            // Use browser-native method to trigger download
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+
+            // Extract filename from URL or generate a default
+            const filename = url.substring(url.lastIndexOf('/') + 1).split('?')[0] || `file_${index + 1}`;
+            link.download = filename;
+
+            // Append to body, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Download failed:', error);
+        }
+    };
+
+    return (
+        <div className="w-full max-w-4xl mx-auto mb-6 relative group">
+            {isImage(url) ? (
+                <div className="relative w-full">
+                    <Image
+                        src={url}
+                        alt={`File ${index + 1}`}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto object-contain rounded-lg shadow-lg"
+                        loading="lazy"
+                        quality={100}
+                        unoptimized
+                    />
+                    <div className="absolute top-4 right-4 flex space-x-2">
+                        <Button
+                            onClick={handleDownload}
+                            variant="secondary"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                        </Button>
+                        <Button
+                            onClick={onDelete}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            variant="destructive"
+                            size="sm"
+                            disabled={isDeleting}
+                        >
+                            Delete
+                        </Button>
+                    </div>
+                </div>
+            ) : isPDF(url) ? (
+                <div className="w-full border rounded-lg overflow-hidden shadow-lg">
+                    <PDFViewer
+                        url={`${url.split('?')[0]}?alt=media`}
+                        fileName={`File ${index + 1}`}
+                    />
+                    <div className="p-2 flex justify-end space-x-2">
+                        <Button
+                            onClick={onDelete}
+                            variant="destructive"
+                            size="sm"
+                            disabled={isDeleting}
+                        >
+                            Delete
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <div className="w-full border rounded-lg p-4 flex justify-between items-center">
+                    <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 truncate"
+                    >
+                        View File {index + 1}
+                    </a>
+                    <div className="flex space-x-2">
+                        <Button
+                            onClick={onDelete}
+                            variant="destructive"
+                            size="sm"
+                            disabled={isDeleting}
+                        >
+                            Delete
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default function DocumentDetail() {
@@ -48,13 +159,12 @@ export default function DocumentDetail() {
             if (user?.id && params.id) {
                 return fetchDocument(user.id, params.id as string);
             }
-            return null; // Or throw an error if you prefer
+            return null;
         },
         enabled: !!user?.id && !!params.id && isLoaded,
         retry: 1,
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
-
 
     // Update document mutation
     const updateMutation = useMutation({
@@ -147,7 +257,7 @@ export default function DocumentDetail() {
         },
     });
 
-    // Update the handleToggleReminders function in your DocumentDetail component
+    // Toggle reminders function
     const handleToggleReminders = async () => {
         if (document) {
             updateMutation.mutate({
@@ -166,20 +276,6 @@ export default function DocumentDetail() {
     };
 
     const isExpired = document ? new Date(document.expiryDate) < new Date() : false;
-    // const isImage = (fileName: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
-    const isImage = (url: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url.split('?')[0].toLowerCase());
-    const getImageUrl = (url: string) => {
-        try {
-            // Create a URL object to handle the Firebase Storage URL
-            // const firebaseUrl = new URL(url);
-            // Return the full URL as is - Firebase Storage URLs are already properly formatted
-            return url;
-        } catch (e) {
-            console.error('Invalid URL:', e);
-            return url;
-        }
-    };
-
 
     if (!isLoaded || isLoading) {
         return (
@@ -202,23 +298,23 @@ export default function DocumentDetail() {
     }
 
     return (
-        <>
-            <div className="w-full h-full container mx-auto p-4">
-                <div className="bg-slate-400 rounded-lg shadow-md p-6">
-                    <h1 className="text-2xl font-bold mb-4">
-                        {document.title} {isExpired && <span className="text-red-500">(Expired)</span>}
-                    </h1>
+        <div className="container mx-auto p-4 max-w-4xl">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h1 className="text-2xl font-bold mb-4">
+                    {document.title} {isExpired && <span className="text-red-500">(Expired)</span>}
+                </h1>
 
-                    <p className="mb-4">{document.description}</p>
+                <p className="mb-4">{document.description}</p>
 
-                    <p className="mb-4">
-                        Expiry Date: {new Date(document.expiryDate).toLocaleDateString()}
-                    </p>
+                <p className="mb-4">
+                    Expiry Date: {new Date(document.expiryDate).toLocaleDateString()}
+                </p>
 
+                <div className="flex space-x-4 mb-4">
                     <Button
                         onClick={handleToggleReminders}
                         variant="outline"
-                        className="mb-4 flex items-center gap-2"
+                        className="flex items-center gap-2"
                         disabled={updateMutation.isPending}
                     >
                         {document.reminders ? (
@@ -233,59 +329,6 @@ export default function DocumentDetail() {
                             </>
                         )}
                     </Button>
-
-                    {/* <div className="w-full h-full">
-                    {document.fileUrls?.map((url: string, index: number) => (
-                        <div key={url} className="relative group">
-                            {isImage(url) ? (
-                                <div className="absolute w-full h-auto">
-                                    <Image
-                                        src={getImageUrl(url)}
-                                        alt={`File ${index + 1}`}
-                                        width={500}
-                                        height={500}
-                                        className="object-cover w-full h-full"
-                                        loading="lazy"
-                                        quality={100}
-                                        // fill
-                                        // className="rounded-lg object-cover"
-                                        // sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        unoptimized
-                                    />
-                                    <Button
-                                        onClick={() => deleteFileMutation.mutate({ fileUrl: url, fileIndex: index })}
-                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        variant="destructive"
-                                        size="sm"
-                                        disabled={deleteFileMutation.isPending}
-                                    >
-                                        Delete
-                                    </Button>
-                                </div>
-                            ) : (
-                                <div className="border rounded-lg p-4">
-                                    <a
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-800"
-                                    >
-                                        View File {index + 1}
-                                    </a>
-                                    <Button
-                                        onClick={() => deleteFileMutation.mutate({ fileUrl: url, fileIndex: index })}
-                                        className="ml-4"
-                                        variant="destructive"
-                                        size="sm"
-                                        disabled={deleteFileMutation.isPending}
-                                    >
-                                        Delete
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div> */}
 
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -312,63 +355,18 @@ export default function DocumentDetail() {
                     </AlertDialog>
                 </div>
             </div>
-            <div className="w-full h-full">
+
+            <div className="space-y-6">
                 {document.fileUrls?.map((url: string, index: number) => (
-                    <div key={url} className="relative group">
-                        {isImage(url) ? (
-                            <div className="absolute w-full h-auto">
-                                <Image
-                                    src={getImageUrl(url)}
-                                    alt={`File ${index + 1}`}
-                                    width={500}
-                                    height={500}
-                                    className="object-cover w-full h-full"
-                                    loading="lazy"
-                                    quality={100}
-                                    // fill
-                                    // className="rounded-lg object-cover"
-                                    // sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    unoptimized
-                                />
-                                <Button
-                                    onClick={() => deleteFileMutation.mutate({ fileUrl: url, fileIndex: index })}
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    variant="destructive"
-                                    size="sm"
-                                    disabled={deleteFileMutation.isPending}
-                                >
-                                    Delete
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="border rounded-lg p-4">
-                                <a
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800"
-                                >
-                                    View File {index + 1}
-                                </a>
-                                <Button
-                                    onClick={() => deleteFileMutation.mutate({ fileUrl: url, fileIndex: index })}
-                                    className="ml-4"
-                                    variant="destructive"
-                                    size="sm"
-                                    disabled={deleteFileMutation.isPending}
-                                >
-                                    Delete
-                                </Button>
-                            </div>
-                        )}
-                    </div>
+                    <FileItem
+                        key={url}
+                        url={url}
+                        index={index}
+                        onDelete={() => deleteFileMutation.mutate({ fileUrl: url, fileIndex: index })}
+                        isDeleting={deleteFileMutation.isPending}
+                    />
                 ))}
             </div>
-        </>
+        </div>
     );
 }
-
-
-
-
-

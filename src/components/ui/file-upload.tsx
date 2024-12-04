@@ -27,7 +27,7 @@ const secondaryVariant = {
 
 interface FileUploadProps {
     onChange?: (files: File[]) => void;
-    multiple?: boolean;  // Add multiple prop
+    multiple?: boolean;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({ onChange, multiple = false }) => {
@@ -35,10 +35,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange, multiple = fal
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (newFiles: File[]) => {
-        setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+        // If multiple is false, replace the files entirely
+        // If multiple is true, concatenate the new files with existing ones
+        const updatedFiles = multiple
+            ? Array.from(new Set([...files, ...newFiles]))
+            : newFiles;
+
+        setFiles(updatedFiles);
 
         if (onChange) {
-            onChange(newFiles);
+            onChange(updatedFiles);
         }
     };
 
@@ -47,7 +53,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange, multiple = fal
     };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        multiple,  // Use the multiple prop
+        multiple,
         noClick: true,
         onDrop: (acceptedFiles) => handleFileChange(acceptedFiles),
         onDropRejected: (error) => {
@@ -67,6 +73,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange, multiple = fal
                     ref={fileInputRef}
                     id="file-upload-handle"
                     type="file"
+                    multiple={multiple}
                     onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
                     className="hidden"
                 />
@@ -84,7 +91,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange, multiple = fal
                         {files.length > 0 &&
                             files.map((file, idx) => (
                                 <motion.div
-                                    key={"file" + idx}
+                                    key={`file-${file.name}-${idx}`}
                                     layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
                                     className="relative overflow-hidden z-40 bg-white dark:bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md shadow-sm"
                                 >
@@ -166,6 +173,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange, multiple = fal
         </div>
     );
 };
+
 
 export function GridPattern() {
     const columns = 41;
